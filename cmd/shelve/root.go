@@ -29,28 +29,20 @@ func Execute() {
 }
 
 func importDirectories(cmd *cobra.Command, args []string) {
-	directories := getDirectoriesInStagingDirectory()
-	directoryNames := []string{}
-	directoryNamesToImport := []string{}
 
-	for _, directory := range directories {
-		directoryNames = append(directoryNames, directory.Name)
+	if shelve.STAGING_DIRECTORY != "" || shelve.TARGET_DIRECTORY == "" {
+		log.Fatalf("The environment variables SHELVE_STAGING_DIRECTORY and SHEVE_TARGET_DIRECTORY are not set. Exiting.")
 	}
 
-	prompt := &survey.MultiSelect{
-		Message: "Select directories to import:",
-		Options: directoryNames,
-	}
-
-	survey.AskOne(prompt, &directoryNamesToImport)
-
+	allDirectories := getDirectoriesInStagingDirectory()
+	directoriesToImport := promptForDirectoriesToImport(allDirectories)
 	directoriesNamesToImportMap := make(map[string]struct{})
 
-	for _, directoryName := range directoryNamesToImport {
+	for _, directoryName := range directoriesToImport {
 		directoriesNamesToImportMap[directoryName] = struct{}{}
 	}
 
-	for _, directory := range directories {
+	for _, directory := range allDirectories {
 		if _, ok := directoriesNamesToImportMap[directory.Name]; ok {
 			copyDirectoryToTargetDirectory(directory)
 		}
@@ -101,6 +93,24 @@ func copyDirectoryToTargetDirectory(directory shelve.Directory) {
 	}
 
 	fmt.Println(string(stdout))
+}
+
+func promptForDirectoriesToImport(directories []shelve.Directory) []string {
+	directoryNames := []string{}
+	directoryNamesToImport := []string{}
+
+	for _, directory := range directories {
+		directoryNames = append(directoryNames, directory.Name)
+	}
+
+	prompt := &survey.MultiSelect{
+		Message: "Select directories to import:",
+		Options: directoryNames,
+	}
+
+	survey.AskOne(prompt, &directoryNamesToImport)
+
+	return directoryNamesToImport
 }
 
 func triggerBeetsImport() {

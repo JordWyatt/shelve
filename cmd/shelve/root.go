@@ -30,7 +30,7 @@ func Execute() {
 
 func importDirectories(cmd *cobra.Command, args []string) {
 
-	if shelve.STAGING_DIRECTORY != "" || shelve.TARGET_DIRECTORY == "" {
+	if shelve.STAGING_DIRECTORY == "" || shelve.TARGET_DIRECTORY == "" {
 		log.Fatalf("The environment variables SHELVE_STAGING_DIRECTORY and SHEVE_TARGET_DIRECTORY are not set. Exiting.")
 	}
 
